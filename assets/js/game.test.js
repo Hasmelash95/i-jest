@@ -2,7 +2,8 @@
  * @jest-environment jsdom
  */
 
-const { game, newGame, showScore, addTurn, lightsOn, showTurns } = require("../js/script");
+const { game, newGame, showScore, addTurn, lightsOn, showTurns, playerTurn } = require("../js/script");
+jest.spyOn(window, "alert").mockImplementation(() => { });
 
 beforeAll(() => {
     let fs = require("fs");
@@ -31,6 +32,15 @@ describe("game object contains correct keys", () => {
     test("turnNumber key exists", () => {
         expect("turnNumber" in game).toBe(true);
     });
+    test("last button key exists", () => {
+        expect("lastButton" in game).toBe(true);
+    })
+    test("turn in progress key exists", () => {
+        expect("turnInProgress" in game).toBe(true);
+    })
+    test("turn in progress value is false", () => {
+        expect("turnInProgress" in game).toBe(true);
+    })
 });
 
 describe("newGame works correctly", () => {
@@ -53,6 +63,13 @@ describe("newGame works correctly", () => {
     test("should display 0 for element with id of score", () => {
         expect(document.getElementById("score").innerText).toEqual(0);
     })
+    test("expect data-listener to be true", () => {
+        newGame();
+        const elements = document.getElementsByClassName("circle");
+        for (let element of elements) {
+            expect(element.getAttribute("data-listener")).toEqual("true");
+        }
+    });
 });
 
 describe("gameplay works correctly", () => {
@@ -81,4 +98,20 @@ describe("gameplay works correctly", () => {
         showTurns();
         expect(game.turnNumber).toBe(0);
     });
+    test("should increment the score if the turn is correct", () => {
+        game.playerMoves.push(game.currentGame[0]);
+        playerTurn();
+        expect(game.score).toBe(1);
+    });
+    test("clicking during computer sequence should fail", () => {
+        showTurns();
+        game.lastButton = "";
+        document.getElementById("button2").click();
+        expect(game.lastButton).toEqual("");
+    });
+    test("should call an alert if the move is wrong", () => {
+        game.playerMoves.push("wrong");
+        playerTurn();
+        expect(window.alert).toBeCalledWith("Wrong move!")
+    })
 });
